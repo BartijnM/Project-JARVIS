@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "project-jarvis"
+version = "0.1.0"
+description = "Een klein taalmodel vanaf nul in NumPy en PyTorch"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+numpy = ["numpy"]
+torch = ["torch"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

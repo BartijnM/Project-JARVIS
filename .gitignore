@@ -1,0 +1,34 @@
+# Virtuele omgevingen en lokale instellingen
+.venv/
+.venv-*/
+venv/
+.env
+.env.*
+!.env.example
+
+# Python-cache en build-uitvoer
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Lokale datasets en trainingsuitvoer
+/data/
+/runs/
+/checkpoints/
+*.npz
+*.pt
+*.pth
+*.safetensors
+
+# Lokale editor- en systeembestanden
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

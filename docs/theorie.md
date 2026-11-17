@@ -2,218 +2,23 @@
 
 Ik train Project JARVIS om het volgende token in een tekst te voorspellen. Ik begin met een bigrammodel dat één teken als context gebruikt. Daarna bouw ik een kleine causale Transformer die meerdere eerdere tekens kan gebruiken.
 
-```drawio
-<mxfile>
-  <diagram id="CgMhowRAXgufTiShjw5J" name="Page-1">
-    <mxGraphModel dx="1228" dy="1112" grid="1" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
-      <root>
-        <mxCell id="qK4Sb0BCGV25aGNJirlf-0" />
-        <mxCell id="qK4Sb0BCGV25aGNJirlf-1" parent="qK4Sb0BCGV25aGNJirlf-0" />
-        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;flowchart TD\n    A[\&quot;UTF-8-tekst\&quot;] --&gt; B[\&quot;Trainings- en validatiesplit\&quot;]\n    B --&gt; C[\&quot;Gedeelde tokenizer en volgende-tokenparen\&quot;]\n    C --&gt;|invoer-ID’s| D[\&quot;J01 en J02 · Bigramtabel\&quot;]\n    C --&gt;|invoer-ID’s| E[\&quot;J03 en J04 · Token- en positie-embeddings\&quot;]\n    E --&gt; F[\&quot;Transformerblok · Causale aandacht, feed-forward, restverbindingen en normalisatie\&quot;]\n    F --&gt; G[\&quot;Uitvoerprojectie naar de woordenschat\&quot;]\n    D --&gt; H[\&quot;Logits\&quot;]\n    G --&gt; H\n    C --&gt;|doel-ID’s| I[\&quot;Cross-entropy\&quot;]\n    H --&gt; I\n    I --&gt;|alleen tijdens training| J[\&quot;Gradiënten · Handmatig in NumPy, autograd in PyTorch\&quot;]\n    J --&gt; K[\&quot;Gewichten bijwerken\&quot;]\n    H --&gt;|tijdens genereren| L[\&quot;Softmax en volgend token trekken\&quot;]\n    L --&gt; M[\&quot;Token toevoegen aan de context\&quot;]\n    M --&gt; N[\&quot;Gegenereerde ID’s decoderen\&quot;]&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="li9aAdwFS_1EtXL9e4dO-0">
-          <mxCell connectable="0" parent="qK4Sb0BCGV25aGNJirlf-1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=10;" vertex="1">
-            <mxGeometry as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="UTF-8-tekst" mermaidId="n:A" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="UTF-8-tekst" id="qK4Sb0BCGV25aGNJirlf-2">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="144" x="310" y="10" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Trainings- en validatiesplit" mermaidId="n:B" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Trainings- en validatiesplit" id="qK4Sb0BCGV25aGNJirlf-3">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="250" x="257" y="114" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Gedeelde tokenizer en volgende-tokenparen" mermaidId="n:C" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Gedeelde tokenizer en volgende-tokenparen" id="qK4Sb0BCGV25aGNJirlf-4">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="379" x="193" y="218" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="J01 en J02 · Bigramtabel" mermaidId="n:D" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="J01 en J02 · Bigramtabel" id="qK4Sb0BCGV25aGNJirlf-5">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="238" x="263" y="587" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="J03 en J04 · Token- en positie-embeddings" mermaidId="n:E" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="J03 en J04 · Token- en positie-embeddings" id="qK4Sb0BCGV25aGNJirlf-6">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="365" x="570" y="341" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Transformerblok · Causale aandacht, feed-forward, restverbindingen en normalisatie" mermaidId="n:F" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Transformerblok · Causale aandacht, feed-forward, restverbindingen en normalisatie" id="qK4Sb0BCGV25aGNJirlf-7">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="670" x="417" y="464" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Uitvoerprojectie naar de woordenschat" mermaidId="n:G" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Uitvoerprojectie naar de woordenschat" id="qK4Sb0BCGV25aGNJirlf-8">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="342" x="581" y="587" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Logits" mermaidId="n:H" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Logits" id="qK4Sb0BCGV25aGNJirlf-9">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="102" x="516" y="691" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Cross-entropy" mermaidId="n:I" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Cross-entropy" id="qK4Sb0BCGV25aGNJirlf-10">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="159" x="159" y="814" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Gradiënten · Handmatig in NumPy, autograd in PyTorch" mermaidId="n:J" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Gradiënten · Handmatig in NumPy, autograd in PyTorch" id="qK4Sb0BCGV25aGNJirlf-11">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="456" x="10" y="937" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Gewichten bijwerken" mermaidId="n:K" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Gewichten bijwerken" id="qK4Sb0BCGV25aGNJirlf-12">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="213" x="132" y="1041" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Softmax en volgend token trekken" mermaidId="n:L" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Softmax en volgend token trekken" id="qK4Sb0BCGV25aGNJirlf-13">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="306" x="549" y="814" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Token toevoegen aan de context" mermaidId="n:M" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Token toevoegen aan de context" id="qK4Sb0BCGV25aGNJirlf-14">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="293" x="556" y="937" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="Gegenereerde ID’s decoderen" mermaidId="n:N" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Gegenereerde ID’s decoderen" id="qK4Sb0BCGV25aGNJirlf-15">
-          <mxCell parent="li9aAdwFS_1EtXL9e4dO-0" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
-            <mxGeometry height="54" width="272" x="566" y="1041" as="geometry" />
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:A-&gt;B#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-16">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-2" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-3">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:B-&gt;C#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-17">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-3" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-4">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="invoer-ID’s" mermaidId="e:C-&gt;D#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="invoer-ID’s" id="qK4Sb0BCGV25aGNJirlf-18">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-4" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-5">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="invoer-ID’s" mermaidId="e:C-&gt;E#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.93;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="invoer-ID’s" id="qK4Sb0BCGV25aGNJirlf-19">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-4" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.93;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-6">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="752" y="307" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:E-&gt;F#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-20">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-6" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-7">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:F-&gt;G#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-21">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-7" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-8">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:D-&gt;H#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0;entryY=0.24;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-22">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-5" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0;entryY=0.24;" target="qK4Sb0BCGV25aGNJirlf-9">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="382" y="666" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:G-&gt;H#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=1;entryY=0.24;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-23">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-8" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=1;entryY=0.24;" target="qK4Sb0BCGV25aGNJirlf-9">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="752" y="666" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="doel-ID’s" mermaidId="e:C-&gt;I#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.32;exitY=1;entryX=0.47;entryY=0;" mermaidBaseValue="doel-ID’s" id="qK4Sb0BCGV25aGNJirlf-24">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-4" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.32;exitY=1;entryX=0.47;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-10">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="228" y="307" />
-                <mxPoint x="228" y="368" />
-                <mxPoint x="228" y="430" />
-                <mxPoint x="228" y="491" />
-                <mxPoint x="228" y="553" />
-                <mxPoint x="228" y="614" />
-                <mxPoint x="228" y="666" />
-                <mxPoint x="228" y="718" />
-                <mxPoint x="228" y="780" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:H-&gt;I#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.72;entryX=0.71;entryY=0;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-25">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-9" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0;exitY=0.72;entryX=0.71;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-10">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="315" y="780" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="alleen tijdens training" mermaidId="e:I-&gt;J#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="alleen tijdens training" id="qK4Sb0BCGV25aGNJirlf-26">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-10" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-11">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:J-&gt;K#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-27">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-11" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-12">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="tijdens genereren" mermaidId="e:H-&gt;L#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.93;entryX=0.5;entryY=0;" mermaidBaseValue="tijdens genereren" id="qK4Sb0BCGV25aGNJirlf-28">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-9" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=1;exitY=0.93;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-13">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points">
-                <mxPoint x="702" y="780" />
-              </Array>
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:L-&gt;M#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-29">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-13" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-14">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-        <UserObject label="" mermaidId="e:M-&gt;N#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="qK4Sb0BCGV25aGNJirlf-30">
-          <mxCell edge="1" parent="li9aAdwFS_1EtXL9e4dO-0" source="qK4Sb0BCGV25aGNJirlf-14" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="qK4Sb0BCGV25aGNJirlf-15">
-            <mxGeometry relative="1" as="geometry">
-              <Array as="points" />
-            </mxGeometry>
-          </mxCell>
-        </UserObject>
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>
-
+```mermaid
+flowchart TD
+    A["UTF-8-tekst"] --> B["Trainings- en validatiesplit"]
+    B --> C["Gedeelde tokenizer en volgende-tokenparen"]
+    C -->|invoer-ID’s| D["J01 en J02 · Bigramtabel"]
+    C -->|invoer-ID’s| E["J03 en J04 · Token- en positie-embeddings"]
+    E --> F["Transformerblok · Causale aandacht, feed-forward, restverbindingen en normalisatie"]
+    F --> G["Uitvoerprojectie naar de woordenschat"]
+    D --> H["Logits"]
+    G --> H
+    C -->|doel-ID’s| I["Cross-entropy"]
+    H --> I
+    I -->|alleen tijdens training| J["Gradiënten · Handmatig in NumPy, autograd in PyTorch"]
+    J --> K["Gewichten bijwerken"]
+    H -->|tijdens genereren| L["Softmax en volgend token trekken"]
+    L --> M["Token toevoegen aan de context"]
+    M --> N["Gegenereerde ID’s decoderen"]
 ```
 
 Tijdens het genereren voer ik na iedere trekking de bijgewerkte context opnieuw aan het model. Het bigrammodel leest alleen het nieuwste token. De Transformer leest meerdere tokens binnen zijn contextvenster.

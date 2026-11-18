@@ -23,6 +23,14 @@ flowchart TD
 
 Tijdens het genereren voer ik na iedere trekking de bijgewerkte context opnieuw aan het model. Het bigrammodel leest alleen het nieuwste token. De Transformer leest meerdere tokens binnen zijn contextvenster.
 
+## Mijn trainingsdoel — Shakespeare-achtige tekst
+
+Ik gebruik Shakespeare-tekst uit `data/shakespeare.txt` voor beide varianten. Mijn tokenizer blijft op tekenniveau werken: ook spaties, leestekens en regelafbrekingen zijn tekens met een token-ID. Zo kan het model patronen in woorden, personagenamen en dialogen leren.
+
+Het bigrammodel gebruikt alleen het laatste teken en leert dus lokale tekenovergangen. De Transformer krijgt meerdere voorafgaande tekens en kan langere patronen leren. Hoe herkenbaar de gegenereerde tekst wordt, hangt af van de modelgrootte, contextlengte en training. Ik beoordeel dit met apart gehouden validatietekst en voorbeeldgeneraties.
+
+Voor de eerste CPU-runs kan ik een kleiner vast deel van het corpus gebruiken. Ik leg de selectie en splitgrens vast en gebruik die voor beide varianten. Ik splits vóór tokenisatie en bouw de woordenschat alleen op de trainingssplit. De kleine handvoorbeelden blijven mijn controles van losse bouwstenen.
+
 ## J01 — Van tekens naar voorspellingen
 
 ### Tokenisatie en volgende-tokenparen
@@ -50,6 +58,8 @@ Tijdens generatie zet ik de logits voor het laatste token om in kansen en trek i
 ## J02 en J04 — Wat PyTorch verandert
 
 Ik houd de tokenizer, splits, doelen en modelberekening gelijk. In het bigrammodel levert dezelfde tabelindexering met dezelfde gewichten en invoer dezelfde logits op. Cross-entropy meet in beide varianten dezelfde gemiddelde loss. Voor J02 vergelijk ik die waarden eerst op vaste invoer en gewichten.
+
+In mijn PyTorch-functie geef ik de logits rechtstreeks aan `torch.nn.functional.cross_entropy`, met `reduction="mean"`. Ik pas vooraf geen softmax toe: de functie berekent intern de benodigde logkansen. De invoer heeft vorm `(B, V)`, de doel-ID’s hebben vorm `(B,)` en type `torch.long`. De loss blijft een scalaire tensor met vorm `()`, zodat autograd er later op kan terugrekenen. Voor weergave kan ik met `.item()` het getal uit die tensor halen.
 
 In NumPy schrijf ik zelf uit hoe de loss via de logits afhangt van de gewichtentabel. In PyTorch werk ik met tensors. Wanneer de gewichtentensor gradiënten bijhoudt, volgt autograd de bewerkingen waarmee ik de loss bereken. Een aanroep van `loss.backward()` past de kettingregel toe tot aan de gewichten. Daarbij telt PyTorch ook bijdragen op wanneer meerdere voorbeelden dezelfde rij hebben gelezen. Dat is dezelfde optelling die ik voor het NumPy-bigrammodel met `np.add.at` uitvoer.
 

@@ -16,7 +16,7 @@ flowchart LR
 
 De tokenizer zet ieder teken om naar een geheel getal. Voor het bigrammodel is het invoerteken de enige context. Het doel is het volgende teken. De gewichten vormen een tabel met vorm `(V, V)`, waarbij `V` het aantal tokens is. Voor een batch van `B` invoertekens heeft de uitvoer vorm `(B, V)`. De loss meet hoe waarschijnlijk het model de juiste volgende tekens vindt. Bij genereren kies ik een volgend token uit de kansverdeling en gebruik dat als nieuwe invoer.
 
-Ik begin met een kleine, zelfgeschreven UTF-8-tekst. Ik splits die vóór het maken van trainingsparen en bouw de woordenschat met de trainingssplit. Onbekende tekens krijgen een vaste token-ID. Ik houd trainings- en validatieloss apart.
+Ik gebruik Shakespeare-tekst uit `data/shakespeare.txt` als gedeeld UTF-8-corpus voor beide varianten. Ik bewaar hoofdletters, leestekens en regelafbrekingen. Voor de eerste CPU-runs kan ik een vast kleiner deel selecteren; de selectie en splitgrens leg ik vooraf vast en houd ik gelijk voor NumPy en PyTorch. Ik splits de tekst vóór tokenisatie en vóór het maken van trainingsparen en bouw de woordenschat uitsluitend met de trainingssplit. Onbekende tekens krijgen ID `0`. Ik houd trainings- en validatieloss apart. Kleine teksten zoals `abab` blijven afzonderlijke controles van de berekeningen. Het doel is Shakespeare-achtige tekst te genereren; de modellen leren daarvoor steeds het volgende teken te voorspellen.
 
 ## Uitbreiding naar een Transformer
 

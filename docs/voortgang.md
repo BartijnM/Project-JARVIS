@@ -13,8 +13,22 @@ Ik heb de tokenizer, de gedeelde functies voor tekstsplits en tokenparen, en een
 | J01.4 — Training | Op `abab` daalde de trainingsloss na 30 stappen met leersnelheid `0.5` van `1.098612` naar `0.103528`. De voorspelde doel-ID’s waren `[2, 1, 2]`. |
 | J01.4 — Generatie | Vanaf `a` genereerde ik met seed `42` tweemaal acht nieuwe tekens. Beide keren kreeg ik inclusief het startteken `abababbab`. |
 
+## J02 — PyTorch-bigrammodel
+
+Ik heb `bigram_logits` en `cross_entropy` in `src/jarvis/bigram_torch.py` toegevoegd. Ik heb de volgende controles uitgevoerd en de uitkomsten bevestigd.
+
+| Onderdeel | Resultaat |
+| --- | --- |
+| J02.1 — Omgeving | Ik kon `jarvis`, PyTorch en NumPy importeren met Python 3.12.10. Mijn omgeving gebruikte PyTorch 2.15.0+cpu en NumPy 2.5.5. De tensor `[1, 2, 1]` had vorm `(3,)` en stond op CPU. |
+| J02.1 — Logits | Voor invoer `[1, 2, 1]` en de vaste gewichtentabel kreeg ik `[[0, 1, 2], [0, 3, 4], [0, 1, 2]]`, met vorm `(3, 3)`. De uitvoer was exact gelijk aan NumPy. |
+| J02.2 — Cross-entropy | Voor logits `[[0, ln(2), 0], [0, 0, 0]]` en doelen `[1, 2]` waren de NumPy-loss, PyTorch-loss en handberekening alle drie `0.895880` op zes decimalen. De vergelijkingen slaagden met absolute tolerantie `1e-12`. De PyTorch-loss was een scalaire tensor met vorm `()`. |
+
+## Datasetkeuze — Shakespeare
+
+Ik wil de modellen trainen om Shakespeare-achtige tekst te genereren. Ik heb daarvoor `Shakespear.txt` aangeleverd vanuit Downloads. Ik kies `data/shakespeare.txt` als vaste locatie voor het gedeelde corpus. De kopie naar die locatie, het inlezen, de tekstselectie, de splitgrens en training op dit corpus zijn nog niet door mij uitgevoerd en bevestigd. De oorspronkelijke herkomst van het bestand is nog niet bevestigd.
+
 ## Volgende stap
 
-Bij **J02** bouw ik hetzelfde bigrammodel met PyTorch en autograd. Ik vergelijk eerst de logits en loss met NumPy op dezelfde invoer en gewichten. Daarna train ik op dezelfde tekst.
+Bij **J02.3** bereken ik de gradiënten met autograd en vergelijk ik ze met de handmatige NumPy-implementatie. Daarna volgen training en generatie op het kleine controlevoorbeeld. Bij **J02.5** bereid ik het gedeelde Shakespeare-corpus voor en train ik beide bigramvarianten daarop. J02 is nog niet afgerond.
 
 De theorie en het overzicht van de modelonderdelen staan in [Theorie van het taalmodel](theorie.md).

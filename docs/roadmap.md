@@ -11,7 +11,11 @@ Ik vink een taak af zodra ik de bijbehorende controle heb uitgevoerd en het resu
 
 ## J02 — PyTorch-bigrammodel
 
-- [ ] Bouw hetzelfde bigrammodel met autograd. Vergelijk de logits en loss op dezelfde invoer en gewichten met NumPy. Train daarna op dezelfde tekst.
+- [x] **J02.1** Controleer de PyTorch-omgeving en vergelijk de tabelindexering en logits met NumPy op identieke invoer en gewichten.
+- [x] **J02.2** Bereken cross-entropy met PyTorch en vergelijk de loss met NumPy en een handberekening.
+- [ ] **J02.3** Bereken de gradiënten met autograd en vergelijk ze met de handmatige NumPy-gradiënten, ook bij herhaalde invoer-ID’s.
+- [ ] **J02.4** Bouw training en generatie. Vergelijk de training op hetzelfde kleine voorbeeld als bij J01.
+- [ ] **J02.5** Bereid het gedeelde Shakespeare-corpus voor: kopieer het naar `data/shakespeare.txt`, controleer UTF-8-invoer, leg een eventueel CPU-proefdeel en de splitgrens vast en bouw de tokenizer op de trainingssplit. Train beide bigramvarianten op dezelfde tekst en leg trainingsloss, validatieloss en voorbeeldgeneraties vast.
 
 ## J03 — NumPy-Transformer
 
@@ -28,4 +32,4 @@ Ik vink een taak af zodra ik de bijbehorende controle heb uitgevoerd en het resu
 
 - [ ] Leg per variant de instellingen, CPU-trainingsduur, validatieloss en voorbeeldgeneraties vast.
 
-Ik vergelijk modellen met dezelfde tokenizer, datasplits, contextlengte en meetmethode. Ik leg seeds vast zodat ik runs per variant kan herhalen.
+Mijn gedeelde corpus is Shakespeare-tekst uit `data/shakespeare.txt`. Het doel is Shakespeare-achtige tekst te genereren. Ik vergelijk modellen met dezelfde tekstselectie, tokenizer, datasplits, contextlengte en meetmethode. Ik leg seeds vast zodat ik runs per variant kan herhalen.

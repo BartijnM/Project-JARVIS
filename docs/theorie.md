@@ -29,7 +29,7 @@ Ik gebruik Shakespeare-tekst uit `data/shakespeare.txt` voor beide varianten. Mi
 
 Het bigrammodel gebruikt alleen het laatste teken en leert dus lokale tekenovergangen. De Transformer krijgt meerdere voorafgaande tekens en kan langere patronen leren. Hoe herkenbaar de gegenereerde tekst wordt, hangt af van de modelgrootte, contextlengte en training. Ik beoordeel dit met apart gehouden validatietekst en voorbeeldgeneraties.
 
-Voor de eerste CPU-runs kan ik een kleiner vast deel van het corpus gebruiken. Ik leg de selectie en splitgrens vast en gebruik die voor beide varianten. Ik splits vóór tokenisatie en bouw de woordenschat alleen op de trainingssplit. De kleine handvoorbeelden blijven mijn controles van losse bouwstenen.
+Voor mijn bevestigde bigramproef gebruik ik de eerste 10.000 tekens van het corpus, met de eerste 9.000 voor training en de volgende 1.000 voor validatie. Beide varianten gebruiken deze selectie en splitgrens. Ik splits vóór tokenisatie en bouw de woordenschat alleen op de trainingssplit. De kleine handvoorbeelden blijven mijn controles van losse bouwstenen.
 
 ## J01 — Van tekens naar voorspellingen
 
@@ -63,11 +63,31 @@ In mijn PyTorch-functie geef ik de logits rechtstreeks aan `torch.nn.functional.
 
 In NumPy schrijf ik zelf uit hoe de loss via de logits afhangt van de gewichtentabel. In PyTorch werk ik met tensors. Wanneer de gewichtentensor gradiënten bijhoudt, volgt autograd de bewerkingen waarmee ik de loss bereken. Een aanroep van `loss.backward()` past de kettingregel toe tot aan de gewichten. Daarbij telt PyTorch ook bijdragen op wanneer meerdere voorbeelden dezelfde rij hebben gelezen. Dat is dezelfde optelling die ik voor het NumPy-bigrammodel met `np.add.at` uitvoer.
 
-De gewichtenupdate blijft een aparte stap. Voor elke trainingsstap maak ik eerder opgebouwde parametergradiënten leeg, bereken ik de nieuwe loss en laat ik autograd de nieuwe gradiënten bepalen. Daarna gebruik ik die gradiënten om de gewichten bij te werken. Bij de Transformer neemt autograd ook de kettingregel door aandacht, feed-forwardlagen en normalisatie over.
+Met `requires_grad=True` laat ik autograd de bewerkingen voor mijn gewichtentensor volgen. In mijn controle met twee voorbeelden die rij 1 lezen, telt autograd de bijdragen op tot `[1/3, -1/6, -1/6]`. `loss.backward()` berekent die gradiënten, maar wijzigt de gewichten niet.
+
+De gewichtenupdate blijft een aparte stap. Voor elke trainingsstap maak ik eerder opgebouwde parametergradiënten leeg, bereken ik de nieuwe loss en laat ik autograd de nieuwe gradiënten bepalen. Daarna gebruik ik die gradiënten om de gewichten bij te werken. In mijn trainingsfunctie maak ik met `weights.detach().clone().requires_grad_(True)` een onafhankelijke trainbare kopie. Per stap zet ik `.grad = None`, bereken ik loss en gradiënten, controleer ik met `assert gradients is not None` dat de gradiënten aanwezig zijn en voer ik de update uit binnen `torch.no_grad()`. De update is `W_nieuw = W_oud - learning_rate * gradient`. Aan het einde geef ik de gewichten met `.detach()` terug. Het wissen voorkomt dat PyTorch gradiënten van opeenvolgende stappen optelt.
+
+Bij generatie schakel ik autograd uit met `@torch.no_grad()`. Ik lees de laatste gewichtenrij, bereken softmax en trek met `torch.multinomial` een token. Een eigen CPU-generator met seed maakt de uitvoer binnen mijn omgeving herhaalbaar. Een gelijke seed geeft niet noodzakelijk dezelfde tekst als NumPy. ID `0` behoudt een kans en kan als `�` in de uitvoer verschijnen.
+
+Bij de PyTorch-Transformer neemt autograd later ook de kettingregel door aandacht, feed-forwardlagen en normalisatie over. Voor de NumPy-Transformer moet ik die afgeleiden nog zelf bouwen en controleren.
 
 ## J03 — Van één teken naar een context
 
 Ik geef de Transformer een reeks tokens. Een token-embedding geeft elke ID een vector en een positie-embedding geeft elk positie-index een vector. Ik tel die vectors op, zodat de representatie informatie bevat over zowel het teken als zijn plaats.
+
+### Token- en positie-embeddings
+
+Mijn token-embeddingtabel heeft vorm `(V, D)`. De ID-array heeft vorm `(B, T)` en `embedding_table[input_ids]` levert `(B, T, D)`. Hier zijn `V` de woordenschatgrootte, `D` de vectorlengte, `B` het aantal reeksen en `T` hun lengte. De kolommen zijn interne vectorcomponenten; bij de bigramtabel waren het direct logits voor volgende tokens.
+
+Ik tel bij iedere tokenvector de positievector op: `X[b, t, d] = E[input_ids[b, t], d] + P[t, d]`. `E` is de tokentabel, `P` de positietabel en `d` een vectorcomponent. Ik selecteer `position_table[:T]` met vorm `(T, D)`; NumPy past die door broadcasting op iedere reeks toe. De functie ondersteunt voorlopig reeksen waarvoor voldoende positierijen beschikbaar zijn. De voorbeeldgewichten zijn handgekozen; tijdens volledige training worden ze trainbaar.
+
+### Queries, keys, values en aandachtsscores
+
+Ik maak voor één aandachtkop drie projecties: `Q = X @ W_Q`, `K = X @ W_K` en `V_values = X @ W_V`. De queries beschrijven waarmee een positie zoekt, de keys waarmee posities worden vergeleken en de values welke informatie wordt doorgegeven. De drie gewichtentabellen hebben vorm `(D, H)` en de uitvoer heeft vorm `(B, T, H)`, waarbij `H` de vectorlengte binnen de kop is. `V_values` staat hier voor values; de letter `V` in de woordenschatvormen betekent woordenschatgrootte.
+
+`@` betekent matrixvermenigvuldiging. Met queries `[[1, 2], [3, 4]]` en keys `[[2, 1], [4, 3]]` krijg ik de ongeschaalde scores `[[4, 10], [10, 24]]`. Ik deel door `sqrt(H)`, hier `sqrt(2)`, om groei van scores bij langere vectoren te beperken. In mijn code staat `queries @ keys.swapaxes(-1, -2) / np.sqrt(head_size)`. `swapaxes` verwisselt de laatste twee assen van keys en behoudt de batchas.
+
+De score-uitvoer heeft vorm `(B, T, T)`: per reeks geeft rij `t` de scores waarmee positie `t` naar iedere positie `s` kijkt. Dit zijn nog geen kansen. De code en scoretest zijn toegevoegd, maar ik heb de testuitkomst nog niet bevestigd. Het causale masker, de softmax over bekeken posities en het gewogen mengen van values volgen daarna.
 
 Causale aandacht laat elke positie informatie ophalen uit zichzelf en eerdere posities. Als de invoer `a b c` is, mag de positie van `b` aandacht geven aan `a` en `b`. De score voor aandacht naar `c` wordt gemaskeerd, zodat `b` bij het voorspellen van `c` het antwoord niet vooraf ziet. Ik controleer dit straks door een toekomstig invoertoken te wijzigen en te vergelijken of de eerdere logits gelijk blijven.
 

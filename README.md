@@ -30,22 +30,34 @@ py -3.12 -m venv .venv-torch
 .\.venv-torch\Scripts\python.exe -c "import jarvis, torch, numpy"
 ```
 
-De importcontrole controleert de installatie. De eerste modelmijlpaal is een bigrammodel op CPU. Het leert welk teken waarschijnlijk volgt op het vorige teken en genereert daarna korte tekst. Het NumPy-bigrammodel is gebouwd. Bij J02 heb ik de PyTorch-logits en cross-entropy met NumPy vergeleken en de controles bevestigd. De volgende stap is autograd; daarna volgen training en generatie.
+De importcontrole controleert de installatie. De eerste modelmijlpaal is een bigrammodel op CPU. Het leert welk teken waarschijnlijk volgt op het vorige teken en genereert daarna korte tekst. J01 en J02 zijn afgerond: beide bigrammodellen trainen en genereren tekst op CPU. Op hetzelfde Shakespeare-proefdeel heb ik gelijke gewichten, trainingsloss en validatieloss bevestigd. Bij J03 heb ik token- en positie-embeddings en de query-, key- en valueprojecties gecontroleerd. De aandachtsscores en hun test staan in de broncode; de testuitkomst heb ik nog niet bevestigd. Mijn volgende stap is die test draaien, daarna volgt het causale masker.
 
 ## Trainingsdata
 
-Ik gebruik het aangeleverde bestand `Shakespear.txt` als Shakespeare-corpus. De vaste locatie binnen mijn project wordt `data/shakespeare.txt` (UTF-8). Het bestand staat bij het vastleggen van deze keuze nog in Downloads; de kopie naar de projectmap en het inlezen zijn nog niet bevestigd.
+Ik gebruik het aangeleverde bestand `Shakespear.txt` als Shakespeare-corpus. Het bestand staat als UTF-8-tekst in `data/shakespeare.txt`. Ik heb het inlezen bevestigd: 1.115.394 tekens en 65 unieke tekens. Bij het lezen worden Windows-regelafbrekingen naar `\n` omgezet.
 
-Vanuit de projecthoofdmap kan ik het bestand als volgt kopiëren:
+Als het corpus bij een nieuwe lokale installatie nog ontbreekt, kan ik het vanuit Downloads kopiëren. Ik gebruik binnen het project de bestandsnaam `shakespeare.txt`:
 
 ```powershell
 New-Item -ItemType Directory -Path .\data -Force | Out-Null
 Copy-Item -LiteralPath "$env:USERPROFILE\Downloads\Shakespear.txt" -Destination .\data\shakespeare.txt
 ```
 
-Ik gebruik één bronbestand voor NumPy en PyTorch. Ik bewaar hoofdletters, leestekens en regelafbrekingen. Ik splits de tekst vóór tokenisatie in training en validatie en bouw de tokenizer uitsluitend op de trainingssplit. De exacte splitgrens en een eventueel kleiner CPU-proefdeel leg ik vast voordat ik ga trainen. Beide varianten krijgen hetzelfde geselecteerde deel en dezelfde splits.
+Ik gebruik één bronbestand voor NumPy en PyTorch. Ik bewaar hoofdletters, leestekens en regelafbrekingen. Ik splits de tekst vóór tokenisatie in training en validatie en bouw de tokenizer uitsluitend op de trainingssplit. Voor mijn bevestigde bigramproef gebruik ik de eerste 10.000 tekens: 9.000 voor training en 1.000 voor validatie. Dat geeft 8.999 trainingsparen en 999 validatieparen. Mijn tokenizer heeft 57 tokens inclusief ID `0`. De letter `J` komt eenmaal uitsluitend in validatie voor en krijgt daar ID `0`. Beide varianten krijgen dezelfde selectie en splits.
 
-De kleine voorbeelden zoals `abab` blijven mijn handmatige controles. Training op Shakespeare is nog niet uitgevoerd. De map `data/` is al uitgesloten in `.gitignore`; het corpus wordt daardoor niet standaard opgenomen in versiebeheer. De oorspronkelijke herkomst van het aangeleverde bestand is nog niet bevestigd.
+De kleine voorbeelden zoals `abab` blijven mijn handmatige controles. Met nulgewichten, leersnelheid `5.0` en 100 stappen daalde de trainingsloss van `4.043051` naar `2.884268`; de validatieloss was `2.991439` in beide varianten. Ik heb per variant herhaalbare generatie vanaf `F` met seed `42` en 200 nieuwe tokens bevestigd. De map `data/` is al uitgesloten in `.gitignore`; het corpus wordt daardoor niet standaard opgenomen in versiebeheer. De oorspronkelijke herkomst van het aangeleverde bestand is nog niet bevestigd.
+
+## Controles opnieuw uitvoeren
+
+Ik bewaar nieuwe controles in testbestanden en voer ze vanuit de projecthoofdmap uit met mijn PyTorch-omgeving, die ook NumPy bevat:
+
+```powershell
+.\.venv-torch\Scripts\python.exe -m unittest discover -s tests -p "test_shakespeare_bigram.py" -v
+.\.venv-torch\Scripts\python.exe -m unittest discover -s tests -p "test_embeddings_numpy.py" -v
+.\.venv-torch\Scripts\python.exe -m unittest discover -s tests -p "test_attention_numpy.py" -v
+```
+
+De Shakespeare-test en beide embeddingtests heb ik bevestigd. Bij aandacht heb ik de projectietest bevestigd; de toegevoegde scoretest is mijn eerstvolgende controle. Meer uitleg staat in [tests/README.md](tests/README.md).
 
 ## Projectdocumentatie
 

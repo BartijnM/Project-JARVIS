@@ -13,16 +13,18 @@ Ik vink een taak af zodra ik de bijbehorende controle heb uitgevoerd en het resu
 
 - [x] **J02.1** Controleer de PyTorch-omgeving en vergelijk de tabelindexering en logits met NumPy op identieke invoer en gewichten.
 - [x] **J02.2** Bereken cross-entropy met PyTorch en vergelijk de loss met NumPy en een handberekening.
-- [ ] **J02.3** Bereken de gradiënten met autograd en vergelijk ze met de handmatige NumPy-gradiënten, ook bij herhaalde invoer-ID’s.
-- [ ] **J02.4** Bouw training en generatie. Vergelijk de training op hetzelfde kleine voorbeeld als bij J01.
-- [ ] **J02.5** Bereid het gedeelde Shakespeare-corpus voor: kopieer het naar `data/shakespeare.txt`, controleer UTF-8-invoer, leg een eventueel CPU-proefdeel en de splitgrens vast en bouw de tokenizer op de trainingssplit. Train beide bigramvarianten op dezelfde tekst en leg trainingsloss, validatieloss en voorbeeldgeneraties vast.
+- [x] **J02.3** Bereken de gradiënten met autograd en vergelijk ze met de handmatige NumPy-gradiënten, ook bij herhaalde invoer-ID’s.
+- [x] **J02.4** Bouw training en generatie. Vergelijk de training op hetzelfde kleine voorbeeld als bij J01.
+- [x] **J02.5** Bereid het gedeelde Shakespeare-corpus voor: kopieer het naar `data/shakespeare.txt`, controleer UTF-8-invoer, leg een eventueel CPU-proefdeel en de splitgrens vast en bouw de tokenizer op de trainingssplit. Train beide bigramvarianten op dezelfde tekst en leg trainingsloss, validatieloss en voorbeeldgeneraties vast.
 
 ## J03 — NumPy-Transformer
 
-- [ ] Bouw token- en positie-embeddings. Controleer de uitvoervormen op een kleine batch.
-- [ ] Bouw causale aandacht. Controleer dat het wijzigen van een toekomstig token de voorspellingen op eerdere posities niet verandert.
-- [ ] Voeg de feed-forwardlaag, normalisatie en restverbindingen toe. Controleer de vormen en vergelijk gradiënten met eindige verschillen.
-- [ ] Train het volledige model op CPU. Leg trainingsloss, validatieloss en een voorbeeldgeneratie vast.
+- [x] **J03.1** Bouw token- en positie-embeddings. Controleer waarden, uitvoervormen, broadcasting en het intact blijven van de invoer.
+- [x] **J03.2** Bouw de query-, key- en valueprojecties voor één aandachtkop. Controleer de waarden en vormen met een handvoorbeeld.
+- [ ] **J03.3** Bereken de geschaalde aandachtsscores. De functie en test zijn toegevoegd; ik moet de testuitkomst nog bevestigen.
+- [ ] **J03.4** Voeg het causale masker, softmax en het mengen van values toe. Controleer dat een toekomstig token eerdere aandachtuitvoer niet verandert en herhaal die causaliteitscontrole later voor de volledige modellogits.
+- [ ] **J03.5** Voeg de feed-forwardlaag, normalisatie, restverbindingen en uitvoerprojectie toe. Controleer de vormen en vergelijk gradiënten met eindige verschillen, ook voor embeddings en aandacht.
+- [ ] **J03.6** Train het volledige model op CPU. Leg trainingsloss, validatieloss en een voorbeeldgeneratie vast.
 
 ## J04 — PyTorch-Transformer
 
